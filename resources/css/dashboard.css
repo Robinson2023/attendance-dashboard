@@ -1,0 +1,9 @@
+body {
+    background: url('/images/fondo-dashboard.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Inter', sans-serif;
+}
+
+.bg-white {
+    background-color: rgba(255, 255, 255, 0.9);
+}

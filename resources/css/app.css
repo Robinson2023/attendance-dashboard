@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== FIX GLOBAL PARA SELECTS ===== */
+select,
+.form-select {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  display: block;
+  width: 100%;
+  background-color: #fff;
+  background-image: none;
+  background-clip: padding-box;
+}
+
+/* Tu fix global va aquí, después de las directivas de Tailwind */
+@layer base {
+  select {
+    @apply relative;
+  }
+}
+
+/* --- Fix global para selects fuera de lugar --- */
+select,
+.form-select {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    display: block !important;
+}
+
