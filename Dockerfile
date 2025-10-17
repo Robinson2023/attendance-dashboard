@@ -1,38 +1,40 @@
-# Usa PHP 8.2 con extensiones necesarias
+# Imagen base con PHP y Composer
 FROM php:8.2-cli
 
-# Instalar dependencias del sistema, PHP y Node.js
+# Instalar dependencias del sistema y extensiones PHP necesarias
 RUN apt-get update && apt-get install -y \
-    git unzip curl libzip-dev libpng-dev libonig-dev libxml2-dev && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    git unzip curl libzip-dev libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd
 
-# Instala Composer
+# Instalar Node.js y npm (necesario para compilar assets de Laravel)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Copiar Composer desde imagen oficial
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Directorio de trabajo
+# Establecer el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copia el código
+# Copiar el código del proyecto
 COPY . .
 
-# Copia archivo .env si no existe
+# Crear archivo .env si no existe
 RUN cp .env.example .env || true
 
-# Instala dependencias PHP y Node
+# Instalar dependencias PHP y JS
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
-RUN npm install && npm run build
+RUN npm install
+RUN npm run build || npm run dev
 
-# Genera la APP_KEY
+# Generar APP_KEY automáticamente
 RUN php artisan key:generate --force || true
 
-# Permisos de carpetas
+# Dar permisos a Laravel
 RUN chmod -R 777 storage bootstrap/cache
 
-# Exponer puerto
+# Exponer el puerto
 EXPOSE 8000
 
-# Ejecutar Laravel
+# Comando para ejecutar la aplicación
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
