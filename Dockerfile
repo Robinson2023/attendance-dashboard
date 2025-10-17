@@ -1,40 +1,33 @@
-# Imagen base con PHP y Composer
+# Usa PHP 8.2 con extensiones necesarias
 FROM php:8.2-cli
 
-# Instalar dependencias del sistema y extensiones PHP necesarias
+# Instala dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    git unzip curl libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd
+    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev nodejs npm && \
+    docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instalar Node.js y npm (necesario para compilar assets de Laravel)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
-
-# Copiar Composer desde imagen oficial
+# Instala Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Establecer el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar el código del proyecto
+# Copia archivos del proyecto
 COPY . .
 
-# Crear archivo .env si no existe
+# Copia .env de ejemplo si no existe
 RUN cp .env.example .env || true
 
-# Instalar dependencias PHP y JS
+# Instala dependencias de Laravel
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
-RUN npm install
-RUN npm run build || npm run dev
 
-# Generar APP_KEY automáticamente
+# Genera APP_KEY
 RUN php artisan key:generate --force || true
 
-# Dar permisos a Laravel
+# Permisos
 RUN chmod -R 777 storage bootstrap/cache
 
-# Exponer el puerto
 EXPOSE 8000
 
-# Comando para ejecutar la aplicación
+# Comando de ejecución
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
