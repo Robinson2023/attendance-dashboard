@@ -1,35 +1,37 @@
-# Usa PHP 8.2 con extensiones necesarias
+# Usa PHP con las extensiones necesarias
 FROM php:8.2-cli
 
-# Instala dependencias del sistema y extensiones de PHP requeridas por Laravel
+# Instala dependencias del sistema y Node.js + npm
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev && \
-    docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev nodejs npm && \
+    docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd
 
 # Instala Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Crea el directorio de trabajo
+# Define el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copia el código del proyecto
+# Copia los archivos del proyecto
 COPY . .
 
-# Copia archivo .env de ejemplo si no existe
+# Copia el archivo de entorno si no existe
 RUN cp .env.example .env || true
 
-# Instala dependencias de Laravel
+# Instala dependencias PHP
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Genera APP_KEY automáticamente
+# Instala dependencias de Node y compila los assets
+RUN npm install && npm run build
+
+# Genera la clave de la aplicación Laravel
 RUN php artisan key:generate --force || true
 
-# Ajusta permisos para almacenamiento
+# Asigna permisos necesarios
 RUN chmod -R 777 storage bootstrap/cache
 
 # Expone el puerto 8000
 EXPOSE 8000
 
-# Comando para ejecutar Laravel
+# Comando por defecto al iniciar el contenedor
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
