@@ -1,52 +1,61 @@
-# Etapa 1: Construcción de dependencias
-FROM node:20-alpine as build
+# ============================
+# Etapa 1: Compilar assets con Node
+# ============================
+FROM node:20-alpine AS build
 
+# Directorio de trabajo
 WORKDIR /app
 
-# Copiamos solo los archivos necesarios para npm
+# Copiamos solo lo necesario para instalar dependencias primero
 COPY package*.json ./
+
+# Instalamos dependencias (producción y desarrollo)
 RUN npm install
 
 # Copiamos el resto del proyecto
 COPY . .
 
-# Construimos los assets con Vite
+# Compilamos los assets con Vite
 RUN npm run build
 
-# Etapa 2: Aplicación PHP
+
+# ============================
+# Etapa 2: Entorno de PHP/Laravel
+# ============================
 FROM php:8.2-fpm
 
-# Instala dependencias del sistema
+# Instalar dependencias del sistema necesarias para PHP y extensiones
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libpng-dev libonig-dev libxml2-dev mariadb-client && \
-    docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd
+    docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd && \
+    rm -rf /var/lib/apt/lists/*
 
-# Instala Composer
+# Copiamos Composer desde su imagen oficial
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Define el directorio de trabajo
+# Definimos el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copia el proyecto Laravel
+# Copiamos los archivos del proyecto (sin node_modules)
 COPY . .
 
-# Copia los archivos compilados desde la etapa anterior (Vite)
+# Copiamos los assets compilados desde la etapa anterior
 COPY --from=build /app/public/build ./public/build
 
-# Copia el archivo de entorno
+# Copiamos el archivo .env si no existe
 RUN cp .env.example .env || true
 
-# Instala dependencias de PHP
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Instalamos dependencias PHP (sin dev)
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-# Genera la clave de aplicación
+# Generamos la clave de aplicación
 RUN php artisan key:generate --force || true
 
-# Asigna permisos
+# Damos permisos a los directorios necesarios
 RUN chmod -R 777 storage bootstrap/cache
 
-# Expone el puerto
+# Exponemos el puerto 8000
 EXPOSE 8000
 
-# Comando por defecto
+# Comando por defecto al iniciar el contenedor
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
