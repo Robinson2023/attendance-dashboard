@@ -16,13 +16,11 @@ use App\Http\Controllers\MealExpenseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 
-
+Route::get('/', function () {
+    return view('auth.login'); // 👈 Muestra tu login directamente
+});
 
 Route::resource('contracts', ContractController::class);
-
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])
