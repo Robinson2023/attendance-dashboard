@@ -1,73 +1,83 @@
-@extends('layouts.admin')
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel principal - Gestión</title>
+    @vite('resources/css/app.css')
+    <style>
+        /* Fondo animado más sutil */
+        body {
+            background-image: url('https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            animation: moveBackground 60s ease-in-out infinite alternate;
+            color: white;
+        }
 
-@section('content')
-    <h1 class="text-3xl font-bold mb-6">📊 Panel de Control</h1>
+        @keyframes moveBackground {
+            0% {
+                background-position: center;
+                filter: brightness(0.8);
+            }
+            50% {
+                background-position: center 10%;
+                filter: brightness(0.9);
+            }
+            100% {
+                background-position: center 20%;
+                filter: brightness(0.8);
+            }
+        }
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Tarjeta empleados -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-lg font-semibold mb-2">👨‍💼 Empleados</h2>
-            <p class="text-gray-600">Gestiona la información de los empleados.</p>
-            <a href="{{ route('employees.index') }}" class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Ver empleados
-            </a>
-        </div>
+        .panel {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+        }
 
-        <!-- Tarjeta proyectos -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-lg font-semibold mb-2">📁 Proyectos</h2>
-            <p class="text-gray-600">Administra los proyectos en curso.</p>
-            <a href="{{ route('projects.index') }}" class="mt-3 inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                Ver Proyectos
-            </a>
-        </div>
+        .menu-btn {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200;
+        }
 
-        <!-- Tarjeta nómina -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-lg font-semibold mb-2">💰 Nómina</h2>
-            <p class="text-gray-600">Consulta y administra la nómina.</p>
-            <a href="{{ route('contracts.index') }}" class="mt-3 inline-block px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
-                Ver nómina
-            </a>
-        </div>
+        .menu-btn.secondary {
+            @apply bg-gray-700 hover:bg-gray-800;
+        }
+    </style>
+</head>
 
-        <div class="max-w-5xl mx-auto bg-white shadow rounded p-6 text-center">
+<body class="min-h-screen flex flex-col">
 
-            <h1 class="text-3xl font-bold mb-6">👋 Bienvenido al Panel de Control</h1>
-            <p class="text-gray-600 mb-8">Desde aquí puedes registrar tu asistencia o consultar tus registros.</p>
+    <!-- Encabezado -->
+    <header class="panel p-6 flex justify-between items-center shadow-lg">
+        <h1 class="text-2xl font-bold tracking-wide">
+            Bienvenido a <span class="text-blue-400">Gestión</span>
+        </h1>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="menu-btn secondary">Cerrar sesión</button>
+        </form>
+    </header>
 
-            <div class="flex flex-col md:flex-row justify-center gap-6">
-                <a href="{{ route('attendances.create') }}" 
-                class="bg-green-600 text-white text-xl px-8 py-4 rounded-lg shadow hover:bg-green-700 transition">
-                    🕒 Registrar Asistencia
-                </a>
+    <!-- Contenido principal -->
+    <main class="flex-grow flex flex-col items-center justify-center text-center p-8">
 
-                <a href="{{ route('attendances.index') }}" 
-                class="bg-blue-600 text-white text-xl px-8 py-4 rounded-lg shadow hover:bg-blue-700 transition">
-                    📋 Ver Asistencias
-                </a>
+        <div class="panel p-10 rounded-2xl shadow-2xl max-w-2xl w-full">
+            <h2 class="text-3xl font-bold mb-8">Panel de Control</h2>
+
+            <p class="mb-8 text-gray-300">Selecciona una opción para continuar:</p>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{{ route('clientes.index') }}" class="menu-btn">Gestión de Clientes</a>
+                <a href="{{ route('reportes.index') }}" class="menu-btn">Reportes</a>
             </div>
         </div>
+    </main>
 
-        <div class="bg-white shadow rounded p-6">
-            <h2 class="text-xl font-semibold mb-4 text-pink-600">🎂 Cumpleaños próximos</h2>
+    <!-- Pie de página -->
+    <footer class="text-center py-4 text-gray-400 text-sm">
+        &copy; {{ date('Y') }} Gestión Industrial · Todos los derechos reservados.
+    </footer>
 
-            @if($upcoming->isEmpty())
-                <p class="text-gray-500">No hay cumpleaños cercanos.</p>
-            @else
-                <ul class="divide-y divide-gray-200">
-                    @foreach($upcoming as $emp)
-                        <li class="py-2 flex items-center justify-between">
-                            <span>👤 {{ $emp->first_name }} {{ $emp->last_name }}</span>
-                            <span class="text-sm text-gray-500">
-                                {{ \Carbon\Carbon::parse($emp->birth_date)->format('d/m') }}
-                            </span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
-
-    </div>
-@endsection
-
+</body>
+</html>
